@@ -1,65 +1,292 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import Footer from "@/components/Footer";
+import ArticleCard from "@/components/ArticleCard";
+import PremiumBanner from "@/components/PremiumBanner";
+
+export default function HomePage() {
+
+  const [freeArticles, setFreeArticles] =
+    useState([]);
+
+  const [premiumArticles, setPremiumArticles] =
+    useState([]);
+
+  useEffect(() => {
+
+    fetchArticles();
+
+  }, []);
+
+
+
+
+
+  // =====================================
+  // FETCH ALL ARTICLES
+  // =====================================
+
+  const fetchArticles = async () => {
+
+    try {
+
+      const response = await fetch(
+        "http://localhost:3000/api/articles"
+      );
+
+      const data = await response.json();
+
+      // GRATIS
+      const free = data.filter(
+        (item) =>
+          Number(item.price) === 0
+      );
+
+      // PREMIUM
+      const premium = data.filter(
+        (item) =>
+          Number(item.price) > 0
+      );
+
+      setFreeArticles(
+        free.slice(0, 6)
+      );
+
+      setPremiumArticles(
+        premium.slice(0, 6)
+      );
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+  };
+
+
+
+
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+    <main className="bg-black text-white min-h-screen overflow-x-hidden">
+
+      <Navbar />
+
+
+
+      {/* HERO */}
+
+      <Hero />
+
+
+
+
+
+      {/* FREE ARTICLES */}
+
+      <section
+        id="articles"
+        className="max-w-7xl mx-auto px-6 py-24"
+      >
+
+        <div className="mb-16">
+
+          <p className="uppercase tracking-[5px] text-gray-500 text-sm">
+
+            Free Articles
+
           </p>
+
+          <h2 className="text-5xl md:text-6xl font-black mt-4 leading-tight">
+
+            Latest Free Stories
+
+          </h2>
+
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mt-8">
+
+            <p className="text-gray-400 max-w-2xl leading-8">
+
+              Artikel gratis yang dapat dibaca
+              semua orang tanpa subscription
+              maupun pembelian premium.
+
+            </p>
+
+            <a
+              href="/articles"
+              className="border border-gray-700 px-6 py-3 rounded-full hover:bg-white hover:text-black transition w-fit"
+            >
+
+              Explore Articles
+
+            </a>
+
+          </div>
+
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+          {freeArticles.map((article) => (
+
+            <ArticleCard
+              key={article.id}
+              article={article}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+          ))}
+
         </div>
-      </main>
-    </div>
+
+      </section>
+
+
+
+
+
+      {/* PREMIUM */}
+
+      <section
+        id="premium"
+        className="max-w-7xl mx-auto px-6 py-16"
+      >
+
+        <div className="text-center mb-16">
+
+          <p className="uppercase tracking-[5px] text-gray-500 text-sm">
+
+            Premium Access
+
+          </p>
+
+          <h2 className="text-5xl md:text-6xl font-black mt-4 leading-tight">
+
+            Exclusive Premium Articles
+
+          </h2>
+
+          <p className="text-gray-400 mt-6 max-w-2xl mx-auto leading-8">
+
+            Investigasi eksklusif,
+            data journalism,
+            deep analysis,
+            dan report premium
+            hanya untuk member AKSARA.
+
+          </p>
+
+        </div>
+
+
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+          {premiumArticles.map((article) => (
+
+            <div
+              key={article.id}
+              className="bg-[#111] border border-yellow-500 rounded-3xl overflow-hidden hover:border-yellow-300 transition"
+            >
+
+              <img
+                src={article.image_url}
+                alt={article.title}
+                className="w-full h-60 object-cover"
+              />
+
+              <div className="p-6">
+
+                <p className="text-yellow-400 text-sm mb-3 uppercase tracking-[3px]">
+
+                  Premium Article
+
+                </p>
+
+                <h3 className="text-2xl font-black leading-snug">
+
+                  {article.title}
+
+                </h3>
+
+                <p className="text-gray-400 mt-4 leading-7">
+
+                  {article.preview}
+
+                </p>
+
+                <div className="flex justify-between items-center mt-8">
+
+                  <p className="text-3xl font-black">
+
+                    Rp {article.price}
+
+                  </p>
+
+                  <a
+                    href={`/buy/${article.id}`}
+                    className="bg-white text-black px-5 py-3 rounded-full font-semibold hover:bg-gray-200 transition"
+                  >
+
+                    Buy Article
+
+                  </a>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </div>
+
+
+
+        <div className="flex justify-center mt-14">
+
+          <a
+            href="/premium"
+            className="border border-gray-700 px-7 py-4 rounded-full hover:bg-white hover:text-black transition"
+          >
+
+            View All Premium Articles
+
+          </a>
+
+        </div>
+
+      </section>
+
+
+
+
+
+      {/* PREMIUM BANNER */}
+
+      <section className="max-w-7xl mx-auto px-6 py-20">
+
+        <PremiumBanner />
+
+      </section>
+
+
+
+
+
+      <Footer />
+
+    </main>
   );
 }
