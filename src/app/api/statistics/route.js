@@ -1,104 +1,144 @@
+import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { validateToken } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(req) {
 
   try {
 
-    // ======================================
-    // TOTAL TRANSAKSI BULAN INI
-    // ======================================
+    // =====================================
+    // AUTH VALIDATION
+    // =====================================
 
-    const [monthlyTransactions] = await db.query(`
-      SELECT COUNT(*) AS total
-      FROM transactions
-      WHERE MONTH(created_at) = MONTH(NOW())
-      AND YEAR(created_at) = YEAR(NOW())
-    `);
+    const isValid =
+      await validateToken(req);
 
+    if (!isValid) {
 
-    // ======================================
-    // TOTAL TRANSAKSI TAHUN INI
-    // ======================================
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
 
-    const [yearlyTransactions] = await db.query(`
-      SELECT COUNT(*) AS total
-      FROM transactions
-      WHERE YEAR(created_at) = YEAR(NOW())
-    `);
-
-
-    // ======================================
-    // ARTIKEL TRENDING
-    // ======================================
-
-    const [trendingArticles] = await db.query(`
-      SELECT
-      id,
-      title,
-      views
-      FROM articles
-      ORDER BY views DESC
-      LIMIT 5
-    `);
+    }
 
 
-    // ======================================
-    // TOPIK TRENDING
-    // ======================================
 
-    const [trendingTopics] = await db.query(`
-      SELECT
-      topics.name,
-      COUNT(articles.id) AS total_articles
-      FROM topics
-      LEFT JOIN articles
-      ON topics.id = articles.topic_id
-      GROUP BY topics.id
-      ORDER BY total_articles DESC
-      LIMIT 5
-    `);
+    // =====================================
+    // MONTHLY TRANSACTIONS
+    // =====================================
 
+    const [monthlyTransactions] =
+      await db.query(`
 
-    // ======================================
-    // TOTAL REVENUE
-    // ======================================
+        SELECT
 
-    const [revenue] = await db.query(`
-      SELECT
-      SUM(total_price) AS total_revenue
-      FROM transactions
-      WHERE status = 'paid'
-    `);
+        DATE_FORMAT(created_at, '%Y-%m')
+        AS month,
+
+        COUNT(*) AS total_transactions,
+
+        SUM(amount) AS total_income
+
+        FROM article_purchases
+
+        GROUP BY month
+
+        ORDER BY month DESC
+
+      `);
 
 
-    // ======================================
-    // RESPONSE
-    // ======================================
 
-    return Response.json({
+    // =====================================
+    // TRENDING ARTICLES
+    // =====================================
 
-      monthly_transactions:
-        monthlyTransactions[0].total,
+    const [trendingArticles] =
+      await db.query(`
 
-      yearly_transactions:
-        yearlyTransactions[0].total,
+        SELECT
 
-      total_revenue:
-        revenue[0].total_revenue || 0,
+        title,
+        views
 
-      trending_articles:
-        trendingArticles,
+        FROM articles
 
-      trending_topics:
-        trendingTopics
+        ORDER BY views DESC
+
+        LIMIT 5
+
+      `);
+
+
+
+    // =====================================
+    // TRENDING TOPICS
+    // =====================================
+
+    const [trendingTopics] =
+      await db.query(`
+
+        SELECT
+
+        topics.name AS topic_name,
+
+        COUNT(articles.id)
+        AS total_articles
+
+        FROM topics
+
+        LEFT JOIN articles
+        ON topics.id = articles.topic_id
+
+        GROUP BY topics.id
+
+        ORDER BY total_articles DESC
+
+        LIMIT 5
+
+      `);
+
+
+
+    return NextResponse.json({
+
+      success: true,
+
+      statistics: {
+
+        monthly_transactions:
+          monthlyTransactions,
+
+        trending_articles:
+          trendingArticles,
+
+        trending_topics:
+          trendingTopics,
+
+      },
 
     });
 
   } catch (error) {
 
-    return Response.json({
-      error: error.message
-    });
+    return NextResponse.json(
+
+      {
+        success: false,
+        error: error.message,
+      },
+
+      {
+        status: 500,
+      }
+
+    );
 
   }
 

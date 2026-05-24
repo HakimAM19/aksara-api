@@ -1,9 +1,35 @@
 import { NextResponse } from "next/server";
 import connection from "@/lib/db";
+import { validateToken } from "@/lib/auth";
 
-export async function GET() {
+
+
+// =====================================
+// GET COMMENTS
+// =====================================
+
+export async function GET(req) {
 
   try {
+
+    const isValid =
+      await validateToken(req);
+
+    if (!isValid) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+
+    }
+
+
 
     const [rows] = await connection.execute(`
       SELECT *
@@ -11,21 +37,62 @@ export async function GET() {
       ORDER BY created_at DESC
     `);
 
-    return NextResponse.json(rows);
+
+
+    return NextResponse.json({
+
+      success: true,
+
+      total: rows.length,
+
+      data: rows,
+
+    });
 
   } catch (error) {
 
-    return NextResponse.json({
-      error: error.message,
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+      },
+      {
+        status: 500,
+      }
+    );
 
   }
 
 }
 
+
+
+// =====================================
+// CREATE COMMENT
+// =====================================
+
 export async function POST(req) {
 
   try {
+
+    const isValid =
+      await validateToken(req);
+
+    if (!isValid) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+
+    }
+
+
 
     const body = await req.json();
 
@@ -34,6 +101,29 @@ export async function POST(req) {
       name,
       comment,
     } = body;
+
+
+
+    if (
+      !article_id ||
+      !name?.trim() ||
+      !comment?.trim()
+    ) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Semua field wajib diisi",
+        },
+        {
+          status: 400,
+        }
+      );
+
+    }
+
+
 
     await connection.execute(
       `
@@ -47,22 +137,33 @@ export async function POST(req) {
       `,
       [
         article_id,
-        name,
-        comment,
+        name.trim(),
+        comment.trim(),
       ]
     );
 
+
+
     return NextResponse.json({
-      message: "Comment added",
+
+      success: true,
+
+      message:
+        "Comment added",
+
     });
 
   } catch (error) {
 
-    console.log(error);
-
-    return NextResponse.json({
-      error: error.message,
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+      },
+      {
+        status: 500,
+      }
+    );
 
   }
 

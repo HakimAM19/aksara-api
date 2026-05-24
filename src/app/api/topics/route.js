@@ -1,13 +1,35 @@
+import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { validateToken } from "@/lib/auth";
 
 
-// ====================================
-// GET ALL TOPICS
-// ====================================
 
-export async function GET() {
+// =====================================
+// GET TOPICS
+// =====================================
+
+export async function GET(req) {
 
   try {
+
+    const isValid =
+      await validateToken(req);
+
+    if (!isValid) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+
+    }
+
+
 
     const [rows] = await db.query(`
       SELECT *
@@ -15,13 +37,29 @@ export async function GET() {
       ORDER BY id DESC
     `);
 
-    return Response.json(rows);
+
+
+    return NextResponse.json({
+
+      success: true,
+
+      total: rows.length,
+
+      data: rows,
+
+    });
 
   } catch (error) {
 
-    return Response.json({
-      error: error.message
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+      },
+      {
+        status: 500,
+      }
+    );
 
   }
 
@@ -29,59 +67,86 @@ export async function GET() {
 
 
 
-// ====================================
+// =====================================
 // CREATE TOPIC
-// ====================================
+// =====================================
 
 export async function POST(req) {
 
   try {
+
+    const isValid =
+      await validateToken(req);
+
+    if (!isValid) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        {
+          status: 401,
+        }
+      );
+
+    }
+
+
 
     const body = await req.json();
 
     const { name } = body;
 
 
-    // VALIDASI
-    if (!name) {
 
-      return Response.json({
-        error: "Nama topic wajib diisi"
-      });
+    if (!name?.trim()) {
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Nama topic wajib diisi",
+        },
+        {
+          status: 400,
+        }
+      );
+
     }
 
 
-    // CEK DUPLIKAT
-    const [check] = await db.query(`
-      SELECT *
-      FROM topics
-      WHERE name = ?
-    `, [name]);
 
-
-    if (check.length > 0) {
-
-      return Response.json({
-        error: "Topic sudah ada"
-      });
-    }
-
-
-    await db.query(`
+    await db.query(
+      `
       INSERT INTO topics (name)
       VALUES (?)
-    `, [name]);
+      `,
+      [name.trim()]
+    );
 
 
-    return Response.json({
-      message: "Topic berhasil dibuat"
+
+    return NextResponse.json({
+
+      success: true,
+
+      message:
+        "Topic berhasil dibuat",
+
     });
 
   } catch (error) {
 
-    return Response.json({
-      error: error.message
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+      },
+      {
+        status: 500,
+      }
+    );
 
   }
 

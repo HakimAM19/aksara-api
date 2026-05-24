@@ -50,7 +50,7 @@ export default function Navbar() {
           onClick={() => scrollToSection("premium")}
           className="hover:text-gray-300 transition"
         > */}
-          Premium
+          Articles
         </button>
 
         <button

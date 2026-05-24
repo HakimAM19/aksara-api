@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { validateToken } from "@/lib/auth";
 
 
 
@@ -7,9 +8,33 @@ import db from "@/lib/db";
 // GET ALL ARTICLES
 // =====================================
 
-export async function GET() {
+export async function GET(req) {
 
   try {
+
+    // AUTH VALIDATION
+
+    const isValid =
+      await validateToken(req);
+
+    if (!isValid) {
+
+      return NextResponse.json(
+
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+
+        {
+          status: 401,
+        }
+
+      );
+
+    }
+
+
 
     const [rows] = await db.query(`
 
@@ -26,14 +51,35 @@ export async function GET() {
 
     `);
 
-    return NextResponse.json(rows);
+
+
+    return NextResponse.json({
+
+      success: true,
+
+      total: rows.length,
+
+      data: rows,
+
+    });
 
   } catch (error) {
 
-    return NextResponse.json({
-      error: error.message,
-    });
+    return NextResponse.json(
+
+      {
+        success: false,
+        error: error.message,
+      },
+
+      {
+        status: 500,
+      }
+
+    );
+
   }
+
 }
 
 
@@ -45,6 +91,30 @@ export async function GET() {
 export async function POST(req) {
 
   try {
+
+    // AUTH VALIDATION
+
+    const isValid =
+      await validateToken(req);
+
+    if (!isValid) {
+
+      return NextResponse.json(
+
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+
+        {
+          status: 401,
+        }
+
+      );
+
+    }
+
+
 
     const body = await req.json();
 
@@ -64,20 +134,61 @@ export async function POST(req) {
 
 
 
+    // =====================================
     // VALIDATION
+    // =====================================
 
     if (
-      !title ||
-      !content ||
+
+      !title?.trim() ||
+      !content?.trim() ||
       !topic_id
+
     ) {
 
-      return NextResponse.json({
+      return NextResponse.json(
 
-        error:
-          "Title, content, dan topic wajib diisi",
+        {
+          success: false,
 
-      });
+          error:
+            "Title, content, dan topic wajib diisi",
+        },
+
+        {
+          status: 400,
+        }
+
+      );
+
+    }
+
+
+
+    // VALIDASI PREMIUM PRICE
+
+    if (
+
+      is_premium &&
+      (!price || Number(price) <= 0)
+
+    ) {
+
+      return NextResponse.json(
+
+        {
+          success: false,
+
+          error:
+            "Artikel premium wajib memiliki harga",
+        },
+
+        {
+          status: 400,
+        }
+
+      );
+
     }
 
 
@@ -102,21 +213,23 @@ export async function POST(req) {
 
     `, [
 
-      user_id,
+      user_id || null,
       topic_id,
-      title,
-      preview,
-      content,
-      image_url,
-      article_type,
-      price,
-      is_premium,
+      title.trim(),
+      preview?.trim() || "",
+      content.trim(),
+      image_url?.trim() || "",
+      article_type || "free",
+      price || 0,
+      is_premium || false,
 
     ]);
 
 
 
     return NextResponse.json({
+
+      success: true,
 
       message:
         "Artikel berhasil dibuat",
@@ -128,11 +241,19 @@ export async function POST(req) {
 
   } catch (error) {
 
-    return NextResponse.json({
+    return NextResponse.json(
 
-      error:
-        error.message,
+      {
+        success: false,
+        error: error.message,
+      },
 
-    });
+      {
+        status: 500,
+      }
+
+    );
+
   }
+
 }
