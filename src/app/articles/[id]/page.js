@@ -6,7 +6,8 @@ import {
   use,
 } from "react";
 
-import { useRouter } from "next/navigation"; // <-- INI TAMBAHAN BARU (Wajib untuk redirect setelah hapus)
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2"; // <-- Import SweetAlert2 untuk alert keren
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -14,7 +15,7 @@ export default function ArticleDetail({
   params,
 }) {
 
-  const router = useRouter(); // <-- INI TAMBAHAN BARU
+  const router = useRouter();
 
   const resolvedParams = use(params);
 
@@ -80,38 +81,81 @@ export default function ArticleDetail({
     }
   };
 
-  // ==========================================
-  // INI FITUR BARU: LOGIKA HAPUS ARTIKEL
-  // ==========================================
   const deleteArticle = async () => {
-    const yakin = confirm("Apakah Anda yakin ingin menghapus ARTIKEL ini?");
-    if (!yakin) return;
+    
+    // Menggunakan SweetAlert2 Dark Mode untuk Konfirmasi Hapus Artikel
+    Swal.fire({
+      title: "Apakah Anda yakin?",
+      text: "Artikel ini akan dihapus permanen dari database!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal",
+      background: "#111",
+      color: "#fff"
+    }).then(async (result) => {
+      
+      if (result.isConfirmed) {
+        
+        try {
+          
+          const response = await fetch(
+            `/api/articles/${id}`,
+            {
+              method: "DELETE",
+            }
+          );
 
-    try {
-      const response = await fetch(
-        `/api/articles/${id}`,
-        {
-          method: "DELETE",
+          if (response.ok) {
+            
+            Swal.fire({
+              title: "Terhapus!",
+              text: "Artikel berhasil dihapus.",
+              icon: "success",
+              background: "#111",
+              color: "#fff"
+            });
+            
+            router.push("/"); 
+            router.refresh();
+            
+          } else {
+            
+            Swal.fire({
+              title: "Gagal!",
+              text: "Gagal menghapus artikel.",
+              icon: "error",
+              background: "#111",
+              color: "#fff"
+            });
+            
+          }
+          
+        } catch (error) {
+          console.log(error);
         }
-      );
-
-      if (response.ok) {
-        alert("Artikel berhasil dihapus!");
-        router.push("/"); 
-        router.refresh();
-      } else {
-        alert("Gagal menghapus artikel.");
+        
       }
-    } catch (error) {
-      console.log(error);
-    }
+      
+    });
   };
 
   const submitComment = async () => {
 
     if (!comment) {
 
-      return alert("Komentar kosong");
+      // Alert Keren jika input komentar kosong
+      Swal.fire({
+        title: "Komentar Kosong!",
+        text: "Silakan ketik sesuatu terlebih dahulu sebelum mengirim.",
+        icon: "warning",
+        background: "#111",
+        color: "#fff",
+        confirmButtonColor: "#3085d6"
+      });
+      return;
 
     }
 
@@ -141,6 +185,17 @@ export default function ArticleDetail({
 
       setComment("");
 
+      // Notifikasi sukses otomatis hilang dalam 2 detik setelah membuat komentar
+      Swal.fire({
+        title: "Berhasil!",
+        text: "Komentar Anda telah ditambahkan.",
+        icon: "success",
+        background: "#111",
+        color: "#fff",
+        timer: 2000,
+        showConfirmButton: false
+      });
+
       fetchComments();
 
     } catch (error) {
@@ -154,32 +209,53 @@ export default function ArticleDetail({
     commentId
   ) => {
 
-    const yakin = confirm("Apakah Anda yakin ingin menghapus komentar ini?"); // <-- TAMBAHAN PROTEKSI CONFIRM
-    if (!yakin) return;
+    // Konfirmasi Keren sebelum menghapus komentar
+    Swal.fire({
+      title: "Hapus Komentar?",
+      text: "Komentar yang dipilih akan dihilangkan.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Hapus",
+      cancelButtonText: "Batal",
+      background: "#111",
+      color: "#fff"
+    }).then(async (result) => {
+      
+      if (result.isConfirmed) {
+        
+        try {
 
-    try {
+          await fetch(
+            `/api/comments/${commentId}`,
+            {
+              method: "DELETE",
+            }
+          );
 
-      await fetch(
+          setComments((prev) =>
+            prev.filter(
+              (item) =>
+                item.id !== commentId
+            )
+          );
 
-        `/api/comments/${commentId}`,
+          Swal.fire({
+            title: "Sukses!",
+            text: "Komentar berhasil dihapus.",
+            icon: "success",
+            background: "#111",
+            color: "#fff"
+          });
 
-        {
-          method: "DELETE",
+        } catch (error) {
+          console.log(error);
         }
-      );
-
-      setComments((prev) =>
-        prev.filter(
-          (item) =>
-            item.id !== commentId
-        )
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
+        
+      }
+      
+    });
   };
 
   if (!article) {
@@ -213,9 +289,7 @@ export default function ArticleDetail({
 
       <section className="max-w-4xl mx-auto px-6 py-20">
 
-        {/* ==========================================
-            INI FITUR BARU: TOMBOL DELETE ARTICLE
-           ========================================== */}
+        {/* TOMBOL AKSI ADMIN: DELETE ARTICLE */}
         <div className="flex justify-end mb-8">
           <button
             onClick={deleteArticle}
