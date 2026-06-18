@@ -117,6 +117,8 @@ export default function BuyArticlePage({
 
       <section className="max-w-3xl mx-auto px-6 py-24 text-center">
 
+        
+
         <p className="text-yellow-400 uppercase tracking-[4px] text-sm">
 
           Premium Article

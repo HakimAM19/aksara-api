@@ -3,53 +3,80 @@ import db from "@/lib/db";
 import { validateToken } from "@/lib/auth";
 
 
-
 // =====================================
-// GET ALL ARTICLES
+// GET FREE ARTICLES + PAGINATION
 // =====================================
 
 export async function GET(req) {
 
   try {
 
-    // AUTH VALIDATION
+    const { searchParams } =
+      new URL(req.url);
 
-    const isValid =
-      await validateToken(req);
+    const page =
+      parseInt(
+        searchParams.get("page")
+      ) || 1;
 
-    if (!isValid) {
+    const limit = 6;
 
-      return NextResponse.json(
+    const offset =
+      (page - 1) * limit;
 
-        {
-          success: false,
-          message: "Unauthorized",
-        },
 
-        {
-          status: 401,
-        }
 
+    const [countRows] =
+      await db.query(`
+
+        SELECT COUNT(*) AS total
+        FROM articles
+        WHERE
+          is_premium = 0
+          OR is_premium IS NULL
+
+      `);
+
+    const totalArticles =
+      countRows[0].total;
+
+    const totalPages =
+      Math.ceil(
+        totalArticles / limit
       );
 
-    }
 
 
+    const [rows] = await db.query(
 
-    const [rows] = await db.query(`
+      `
 
       SELECT
-      articles.*,
-      topics.name AS topic_name
+        articles.*,
+        topics.name AS topic_name
 
       FROM articles
 
       LEFT JOIN topics
       ON articles.topic_id = topics.id
 
+      WHERE
+        articles.is_premium = 0
+        OR articles.is_premium IS NULL
+
       ORDER BY articles.created_at DESC
 
-    `);
+      LIMIT ?
+      OFFSET ?
+
+      `,
+
+      [
+        limit,
+        offset,
+      ]
+
+    );
 
 
 
@@ -57,7 +84,13 @@ export async function GET(req) {
 
       success: true,
 
-      total: rows.length,
+      page,
+
+      limit,
+
+      totalArticles,
+
+      totalPages,
 
       data: rows,
 
@@ -92,12 +125,10 @@ export async function POST(req) {
 
   try {
 
-    // AUTH VALIDATION
-
-    const isValid =
+    const user =
       await validateToken(req);
 
-    if (!isValid) {
+    if (!user) {
 
       return NextResponse.json(
 
@@ -108,6 +139,28 @@ export async function POST(req) {
 
         {
           status: 401,
+        }
+
+      );
+
+    }
+
+
+
+    if (
+      user.role !== "admin" &&
+      user.role !== "writer"
+    ) {
+
+      return NextResponse.json(
+
+        {
+          success: false,
+          message: "Forbidden",
+        },
+
+        {
+          status: 403,
         }
 
       );
@@ -134,10 +187,6 @@ export async function POST(req) {
 
 
 
-    // =====================================
-    // VALIDATION
-    // =====================================
-
     if (
 
       !title?.trim() ||
@@ -150,7 +199,6 @@ export async function POST(req) {
 
         {
           success: false,
-
           error:
             "Title, content, dan topic wajib diisi",
         },
@@ -165,8 +213,6 @@ export async function POST(req) {
 
 
 
-    // VALIDASI PREMIUM PRICE
-
     if (
 
       is_premium &&
@@ -178,7 +224,6 @@ export async function POST(req) {
 
         {
           success: false,
-
           error:
             "Artikel premium wajib memiliki harga",
         },
@@ -193,7 +238,9 @@ export async function POST(req) {
 
 
 
-    const [result] = await db.query(`
+    const [result] = await db.query(
+
+      `
 
       INSERT INTO articles (
 
@@ -211,19 +258,23 @@ export async function POST(req) {
 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 
-    `, [
+      `,
 
-      user_id || null,
-      topic_id,
-      title.trim(),
-      preview?.trim() || "",
-      content.trim(),
-      image_url?.trim() || "",
-      article_type || "free",
-      price || 0,
-      is_premium || false,
+      [
 
-    ]);
+        user_id || null,
+        topic_id,
+        title.trim(),
+        preview?.trim() || "",
+        content.trim(),
+        image_url?.trim() || "",
+        article_type || "free",
+        price || 0,
+        is_premium || 0,
+
+      ]
+
+    );
 
 
 

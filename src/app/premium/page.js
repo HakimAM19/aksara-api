@@ -108,11 +108,14 @@ export default function PremiumPage() {
 
                   </p>
 
-                  <button className="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition">
+                  <a
+                    href={`/buy/${article.id}`}
+                    className="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition"
+                  >
 
                     Buy Access
 
-                  </button>
+                  </a>
 
                 </div>
 

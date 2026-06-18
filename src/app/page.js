@@ -25,6 +25,35 @@ export default function HomePage() {
 
   }, []);
 
+   useEffect(() => {
+
+    const hash =
+      window.location.hash;
+
+    if (hash) {
+
+      const id =
+        hash.replace("#", "");
+
+      setTimeout(() => {
+
+        const element =
+          document.getElementById(id);
+
+        if (element) {
+
+          element.scrollIntoView({
+            behavior: "smooth",
+          });
+
+        }
+
+      }, 100);
+
+    }
+
+  }, []);
+
 
 
 
@@ -33,43 +62,45 @@ export default function HomePage() {
   // FETCH ALL ARTICLES
   // =====================================
 
-  const fetchArticles = async () => {
+const fetchArticles = async () => {
 
-    try {
+  try {
 
-      const response = await fetch(
-        "http://localhost:3000/api/articles"
-      );
+    // FREE ARTICLES
+    const freeResponse = await fetch(
+      "http://localhost:3000/api/articles"
+    );
 
-      const data = await response.json();
+    const freeResult =
+      await freeResponse.json();
 
-      // GRATIS
-      const free = data.filter(
-        (item) =>
-          Number(item.price) === 0
-      );
-
-      // PREMIUM
-      const premium = data.filter(
-        (item) =>
-          Number(item.price) > 0
-      );
+    if (freeResult.success) {
 
       setFreeArticles(
-        free.slice(0, 6)
+        freeResult.data.slice(0, 6)
       );
-
-      setPremiumArticles(
-        premium.slice(0, 6)
-      );
-
-    } catch (error) {
-
-      console.log(error);
 
     }
-  };
 
+    // PREMIUM ARTICLES
+    const premiumResponse = await fetch(
+      "http://localhost:3000/api/statistics/premium"
+    );
+
+    const premiumResult =
+      await premiumResponse.json();
+
+    setPremiumArticles(
+      premiumResult
+    );
+
+  } catch (error) {
+
+    console.log(error);
+
+  }
+
+};
 
 
 

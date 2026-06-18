@@ -11,7 +11,7 @@ export async function validateToken(req) {
 
     if (!token) {
 
-      return false;
+      return null;
 
     }
 
@@ -28,11 +28,19 @@ export async function validateToken(req) {
 
 
 
-    return rows.length > 0;
+    if (rows.length === 0) {
+
+      return null;
+
+    }
+
+
+
+    return rows[0];
 
   } catch (error) {
 
-    return false;
+    return null;
 
   }
 

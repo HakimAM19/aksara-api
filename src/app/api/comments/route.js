@@ -1,65 +1,34 @@
-import { NextResponse } from "next/server";
-import connection from "@/lib/db";
-import { validateToken } from "@/lib/auth";
+import db from "@/lib/db";
 
 
+// ===============================
+// GET ALL COMMENTS
+// ===============================
 
-// =====================================
-// GET COMMENTS
-// =====================================
-
-export async function GET(req) {
+export async function GET() {
 
   try {
 
-    const isValid =
-      await validateToken(req);
-
-    if (!isValid) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
-        {
-          status: 401,
-        }
-      );
-
-    }
-
-
-
-    const [rows] = await connection.execute(`
-      SELECT *
+    const [rows] = await db.query(`
+      SELECT
+      comments.*,
+      users.name AS user_name,
+      articles.title AS article_title
       FROM comments
-      ORDER BY created_at DESC
+      JOIN users
+      ON comments.user_id = users.id
+      JOIN articles
+      ON comments.article_id = articles.id
+      ORDER BY comments.id DESC
     `);
 
-
-
-    return NextResponse.json({
-
-      success: true,
-
-      total: rows.length,
-
-      data: rows,
-
-    });
+    return Response.json(rows);
 
   } catch (error) {
 
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      {
-        status: 500,
-      }
-    );
+    return Response.json({
+      error: error.message
+    });
 
   }
 
@@ -67,104 +36,78 @@ export async function GET(req) {
 
 
 
-// =====================================
+// ===============================
 // CREATE COMMENT
-// =====================================
+// ===============================
 
 export async function POST(req) {
-
   try {
-
-    const isValid =
-      await validateToken(req);
-
-    if (!isValid) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
-        {
-          status: 401,
-        }
-      );
-
-    }
-
-
-
     const body = await req.json();
 
     const {
       article_id,
-      name,
-      comment,
+      user_id,
+      comment // PERBAIKAN: Ubah content menjadi comment agar sinkron dengan Postman & DB
     } = body;
 
-
-
+    // VALIDASI
     if (
       !article_id ||
-      !name?.trim() ||
-      !comment?.trim()
+      !user_id ||
+      !comment?.trim() // PERBAIKAN: Cek variabel comment
     ) {
-
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "Semua field wajib diisi",
-        },
-        {
-          status: 400,
-        }
-      );
-
+      return Response.json({
+        error: "Semua field wajib diisi"
+      }, { status: 400 });
     }
 
+    // CEK ARTICLE
+    const [article] = await db.query(`
+      SELECT *
+      FROM articles
+      WHERE id = ?
+    `, [article_id]);
 
+    if (article.length === 0) {
+      return Response.json({
+        error: "Artikel tidak ditemukan"
+      }, { status: 404 });
+    }
 
-    await connection.execute(
-      `
-      INSERT INTO comments
-      (
+    // CEK USER
+    const [user] = await db.query(`
+      SELECT *
+      FROM users
+      WHERE id = ?
+    `, [user_id]);
+
+    if (user.length === 0) {
+      return Response.json({
+        error: "User tidak ditemukan"
+      }, { status: 404 });
+    }
+
+    // SIMPAN KE DATABASE
+    await db.query(`
+      INSERT INTO comments (
         article_id,
-        name,
-        comment
+        user_id,
+        comment -- PERBAIKAN: Nama kolom di tabel MariaDB Anda adalah comment
       )
       VALUES (?, ?, ?)
-      `,
-      [
-        article_id,
-        name.trim(),
-        comment.trim(),
-      ]
-    );
+    `, [
+      Number(article_id),
+      Number(user_id),
+      comment.trim() // PERBAIKAN: Masukkan variabel comment
+    ]);
 
-
-
-    return NextResponse.json({
-
-      success: true,
-
-      message:
-        "Comment added",
-
+    return Response.json({
+      message: "Komentar berhasil ditambahkan"
     });
 
   } catch (error) {
-
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message,
-      },
-      {
-        status: 500,
-      }
-    );
-
+    return Response.json({
+      error: error.message
+    }, { status: 500 });
   }
-
 }

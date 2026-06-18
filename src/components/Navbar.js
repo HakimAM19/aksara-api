@@ -1,69 +1,180 @@
 "use client";
 
 import Link from "next/link";
+import {
+  useRouter,
+  usePathname,
+} from "next/navigation";
+
+import {
+  useEffect,
+  useState,
+} from "react";
 
 export default function Navbar() {
 
-  const scrollToSection = (id) => {
+  const router = useRouter();
+  const pathname = usePathname();
+  
 
-    const section = document.getElementById(id);
+  const [showNavbar, setShowNavbar] =
+    useState(true);
 
-    if (section) {
+  useEffect(() => {
 
-      section.scrollIntoView({
-        behavior: "smooth",
-      });
+    let lastScroll = 0;
+
+    const handleScroll = () => {
+
+      const currentScroll =
+        window.scrollY;
+
+      if (currentScroll < 100) {
+
+        setShowNavbar(true);
+
+      } else {
+
+        if (currentScroll > lastScroll) {
+
+          setShowNavbar(false);
+
+        } else {
+
+          setShowNavbar(true);
+
+        }
+
+      }
+
+      lastScroll = currentScroll;
+
+    };
+
+    const handleMouseMove = (e) => {
+
+      if (e.clientY < 80) {
+
+        setShowNavbar(true);
+
+      }
+
+    };
+
+    window.addEventListener(
+      "scroll",
+      handleScroll
+    );
+
+    window.addEventListener(
+      "mousemove",
+      handleMouseMove
+    );
+
+    return () => {
+
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+
+      window.removeEventListener(
+        "mousemove",
+        handleMouseMove
+      );
+
+    };
+
+  }, []);
+
+  const goToSection = (id) => {
+
+    if (pathname === "/") {
+
+      const section =
+        document.getElementById(id);
+
+      if (section) {
+
+        section.scrollIntoView({
+          behavior: "smooth",
+        });
+
+      }
+
+      return;
+
     }
+
+    router.push(`/#${id}`);
+
   };
 
   return (
 
-    <nav className="bg-black/90 backdrop-blur-md text-white px-10 py-6 flex justify-between items-center sticky top-0 z-50 border-b border-gray-900">
+    <nav
+      className={`
+        fixed
+        top-0
+        left-0
+        w-full
+        z-50
+        transition-all
+        duration-300
+        ${
+          showNavbar
+            ? "translate-y-0"
+            : "-translate-y-full"
+        }
+        bg-black/90
+        backdrop-blur-xl
+        border-b
+        border-gray-900
+      `}
+    >
 
-      <Link href="/">
+      <div className="max-w-7xl mx-auto px-8 py-4 flex justify-between items-center">
 
-        <h1 className="text-5xl font-black cursor-pointer tracking-tight">
+        <Link href="/">
 
-          AKSARA
+          <h1 className="text-3xl font-black tracking-tight">
 
-        </h1>
+            AKSARA
 
-      </Link>
+          </h1>
 
-      <div className="flex gap-8 items-center text-sm md:text-base">
-
-        <Link
-          href="/"
-          className="hover:text-gray-300 transition"
-        >
-          Home
         </Link>
 
-        <button
-          onClick={() => scrollToSection("articles")}
-          className="hover:text-gray-300 transition"
-        >
-          {/* Trending
-        </button>
+        <div className="flex gap-8 items-center">
 
-        <button
-          onClick={() => scrollToSection("premium")}
-          className="hover:text-gray-300 transition"
-        > */}
-          Articles
-        </button>
+          <Link
+            href="/"
+            className="hover:text-gray-300 transition"
+          >
+            Home
+          </Link>
 
-        <button
-          onClick={() => scrollToSection("premium")}
-          className="bg-white text-black px-6 py-3 rounded-full font-semibold hover:bg-gray-200 transition"
-        >
+          <button
+            onClick={() =>
+              goToSection("articles")
+            }
+            className="hover:text-gray-300 transition"
+          >
+            Articles
+          </button>
 
-          Subscribe
+      <button  onClick={() =>
+              goToSection("premium")
+            } className="bg-white text-black px-5 py-2 rounded-full font-semibold">
+  Premium
+</button>
 
-        </button>
+        </div>
 
       </div>
 
     </nav>
+
   );
+
 }

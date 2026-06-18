@@ -1,37 +1,84 @@
-import { NextResponse } from "next/server";
-import connection from "@/lib/db";
+import db from "@/lib/db";
 
-export async function DELETE(
-  request,
-  context
-) {
+
+// ===============================
+// GET COMMENT BY ID
+// ===============================
+
+export async function GET(req, context) {
 
   try {
 
-    const params = await context.params;
+    const { id } = await context.params;
 
-    const id = params.id;
+    const [rows] = await db.query(`
+      SELECT *
+      FROM comments
+      WHERE id = ?
+    `, [id]);
 
-    await connection.execute(
-      `
+
+    if (rows.length === 0) {
+
+      return Response.json({
+        error: "Komentar tidak ditemukan"
+      });
+    }
+
+
+    return Response.json(rows[0]);
+
+  } catch (error) {
+
+    return Response.json({
+      error: error.message
+    });
+
+  }
+
+}
+
+
+
+// ===============================
+// DELETE COMMENT
+// ===============================
+
+export async function DELETE(req, context) {
+
+  try {
+
+    const { id } = await context.params;
+
+    const [check] = await db.query(`
+      SELECT *
+      FROM comments
+      WHERE id = ?
+    `, [id]);
+
+
+    if (check.length === 0) {
+
+      return Response.json({
+        error: "Komentar tidak ada mau hapus apa?"
+      });
+    }
+
+
+    await db.query(`
       DELETE FROM comments
       WHERE id = ?
-      `,
-      [id]
-    );
+    `, [id]);
 
-    return NextResponse.json({
-      success: true,
-      message: "Comment deleted",
+
+    return Response.json({
+      message: "Komentar berhasil dihapus"
     });
 
   } catch (error) {
 
-    console.log(error);
-
-    return NextResponse.json({
-      success: false,
-      error: error.message,
+    return Response.json({
+      error: error.message
     });
 
   }

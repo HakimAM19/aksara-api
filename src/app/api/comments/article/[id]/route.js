@@ -8,28 +8,44 @@ export async function GET(
 
   try {
 
-    const params = await context.params;
+    const { id } =
+      await context.params;
 
-    const id = params.id;
+    const [rows] =
+      await connection.execute(
 
-    const [rows] = await connection.execute(
       `
-      SELECT *
+      SELECT
+
+        comments.*,
+
+        users.name
+
       FROM comments
-      WHERE article_id = ?
-      ORDER BY created_at DESC
+
+      LEFT JOIN users
+      ON comments.user_id = users.id
+
+      WHERE comments.article_id = ?
+
+      ORDER BY comments.created_at DESC
       `,
+
       [id]
+
     );
 
-    return NextResponse.json(rows);
+    return NextResponse.json(
+      rows
+    );
 
   } catch (error) {
 
-    console.log(error);
-
     return NextResponse.json({
-      error: error.message,
+
+      error:
+        error.message,
+
     });
 
   }

@@ -8,31 +8,57 @@ import ArticleCard from "@/components/ArticleCard";
 
 export default function ArticlesPage() {
 
-  const [articles, setArticles] = useState([]);
+  const [articles, setArticles] =
+    useState([]);
+
+  const [page, setPage] =
+    useState(1);
+
+  const [totalPages, setTotalPages] =
+    useState(1);
 
   useEffect(() => {
 
     fetchArticles();
 
-  }, []);
+  }, [page]);
+
+
 
   const fetchArticles = async () => {
 
     try {
 
       const response = await fetch(
-        "http://localhost:3000/api/articles"
+
+        `http://localhost:3000/api/articles?page=${page}`
+
       );
 
-      const data = await response.json();
+      const result =
+        await response.json();
 
-      setArticles(data);
+      if (result.success) {
+
+        setArticles(
+          result.data
+        );
+
+        setTotalPages(
+          result.totalPages
+        );
+
+      }
 
     } catch (error) {
 
       console.log(error);
+
     }
+
   };
+
+
 
   return (
 
@@ -66,6 +92,8 @@ export default function ArticlesPage() {
 
         </div>
 
+
+
         <div className="grid md:grid-cols-3 gap-8">
 
           {articles.map((article) => (
@@ -79,10 +107,103 @@ export default function ArticlesPage() {
 
         </div>
 
+
+
+        <div className="flex justify-center items-center gap-3 mt-16">
+
+          <button
+
+            onClick={() =>
+              setPage(page - 1)
+            }
+
+            disabled={page === 1}
+
+            className="
+              px-4 py-2
+              border border-gray-700
+              rounded-lg
+              disabled:opacity-30
+            "
+
+          >
+
+            Previous
+
+          </button>
+
+
+
+          {Array.from(
+            { length: totalPages },
+            (_, index) => (
+
+              <button
+
+                key={index}
+
+                onClick={() =>
+                  setPage(index + 1)
+                }
+
+                className={`
+
+                  px-4 py-2
+                  rounded-lg
+
+                  ${
+                    page === index + 1
+
+                      ? "bg-white text-black"
+
+                      : "border border-gray-700"
+
+                  }
+
+                `}
+
+              >
+
+                {index + 1}
+
+              </button>
+
+            )
+          )}
+
+
+
+          <button
+
+            onClick={() =>
+              setPage(page + 1)
+            }
+
+            disabled={
+              page === totalPages
+            }
+
+            className="
+              px-4 py-2
+              border border-gray-700
+              rounded-lg
+              disabled:opacity-30
+            "
+
+          >
+
+            Next
+
+          </button>
+
+        </div>
+
       </section>
 
       <Footer />
 
     </main>
+
   );
+
 }

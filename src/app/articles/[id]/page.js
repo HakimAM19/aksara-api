@@ -101,12 +101,11 @@ export default function ArticleDetail({
 
             article_id: Number(id),
 
-            name: "Anonymous",
+            user_id: 1,
 
             comment: comment,
 
-          }),
-
+          })
         }
       );
 
@@ -161,17 +160,17 @@ export default function ArticleDetail({
     );
   }
 
- const searchParams =
-  new URLSearchParams(
-    window.location.search
-  );
+  const searchParams =
+    new URLSearchParams(
+      window.location.search
+    );
 
-const unlocked =
-  searchParams.get("unlocked");
+  const unlocked =
+    searchParams.get("unlocked");
 
-const isPremium =
-  Number(article.price) > 0 &&
-  unlocked !== "true";
+  const isPremium =
+    Number(article.price) > 0 &&
+    unlocked !== "true";
 
   return (
 
@@ -180,6 +179,8 @@ const isPremium =
       <Navbar />
 
       <section className="max-w-4xl mx-auto px-6 py-20">
+
+      
 
         <img
           src={article.image_url}
@@ -293,9 +294,7 @@ const isPremium =
                   <div className="flex justify-between items-center">
 
                     <h3 className="font-bold text-lg text-white">
-
-                      {item.name || "Anonymous"}
-
+                      Anonymous
                     </h3>
 
                     <button
