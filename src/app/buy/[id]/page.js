@@ -55,7 +55,7 @@ export default function BuyArticlePage({
     try {
 
       await fetch(
-        "http://localhost:3000/api/article-purchases",
+        "/api/article-purchases",
         {
 
           method: "POST",
