@@ -68,7 +68,7 @@ const fetchArticles = async () => {
 
     // FREE ARTICLES
     const freeResponse = await fetch(
-      "http://localhost:3000/api/articles"
+      "/api/articles"
     );
 
     const freeResult =
