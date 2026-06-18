@@ -6,12 +6,15 @@ import {
   use,
 } from "react";
 
+import { useRouter } from "next/navigation"; // <-- INI TAMBAHAN BARU (Wajib untuk redirect setelah hapus)
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export default function ArticleDetail({
   params,
 }) {
+
+  const router = useRouter(); // <-- INI TAMBAHAN BARU
 
   const resolvedParams = use(params);
 
@@ -77,6 +80,33 @@ export default function ArticleDetail({
     }
   };
 
+  // ==========================================
+  // INI FITUR BARU: LOGIKA HAPUS ARTIKEL
+  // ==========================================
+  const deleteArticle = async () => {
+    const yakin = confirm("Apakah Anda yakin ingin menghapus ARTIKEL ini?");
+    if (!yakin) return;
+
+    try {
+      const response = await fetch(
+        `/api/articles/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        alert("Artikel berhasil dihapus!");
+        router.push("/"); 
+        router.refresh();
+      } else {
+        alert("Gagal menghapus artikel.");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const submitComment = async () => {
 
     if (!comment) {
@@ -124,6 +154,9 @@ export default function ArticleDetail({
     commentId
   ) => {
 
+    const yakin = confirm("Apakah Anda yakin ingin menghapus komentar ini?"); // <-- TAMBAHAN PROTEKSI CONFIRM
+    if (!yakin) return;
+
     try {
 
       await fetch(
@@ -162,7 +195,7 @@ export default function ArticleDetail({
 
   const searchParams =
     new URLSearchParams(
-      window.location.search
+      typeof window !== "undefined" ? window.location.search : ""
     );
 
   const unlocked =
@@ -180,7 +213,17 @@ export default function ArticleDetail({
 
       <section className="max-w-4xl mx-auto px-6 py-20">
 
-      
+        {/* ==========================================
+            INI FITUR BARU: TOMBOL DELETE ARTICLE
+           ========================================== */}
+        <div className="flex justify-end mb-8">
+          <button
+            onClick={deleteArticle}
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-bold text-sm transition"
+          >
+            🗑️ Delete Article
+          </button>
+        </div>
 
         <img
           src={article.image_url}
