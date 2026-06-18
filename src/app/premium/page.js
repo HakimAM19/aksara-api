@@ -20,7 +20,7 @@ export default function PremiumPage() {
     try {
 
       const response = await fetch(
-        "http://localhost:3000/api/statistics/premium"
+        "/api/statistics/premium"
       );
 
       const data = await response.json();

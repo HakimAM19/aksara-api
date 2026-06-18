@@ -31,7 +31,7 @@ export default function ArticlesPage() {
 
       const response = await fetch(
 
-        `http://localhost:3000/api/articles?page=${page}`
+        `/api/articles?page=${page}`
 
       );
 

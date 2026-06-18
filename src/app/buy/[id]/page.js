@@ -36,7 +36,7 @@ export default function BuyArticlePage({
     try {
 
       const response = await fetch(
-        `http://localhost:3000/api/articles/${id}`
+        `/api/articles/${id}`
       );
 
       const data = await response.json();

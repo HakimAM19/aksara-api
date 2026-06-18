@@ -38,7 +38,7 @@ export default function ArticleDetail({
     try {
 
       const response = await fetch(
-        `http://localhost:3000/api/articles/${id}`
+        `/api/articles/${id}`
       );
 
       const data = await response.json();
@@ -57,7 +57,7 @@ export default function ArticleDetail({
     try {
 
       const response = await fetch(
-        `http://localhost:3000/api/comments/article/${id}`
+        `/api/comments/article/${id}`
       );
 
       const data = await response.json();
@@ -88,7 +88,7 @@ export default function ArticleDetail({
     try {
 
       await fetch(
-        "http://localhost:3000/api/comments",
+        "/api/comments",
         {
 
           method: "POST",
@@ -128,7 +128,7 @@ export default function ArticleDetail({
 
       await fetch(
 
-        `http://localhost:3000/api/comments/${commentId}`,
+        `/api/comments/${commentId}`,
 
         {
           method: "DELETE",

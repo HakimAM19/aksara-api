@@ -64,7 +64,7 @@ export default function WriterPage() {
 
       const response = await fetch(
 
-        "http://localhost:3000/api/articles",
+        "/api/articles",
 
         {
 

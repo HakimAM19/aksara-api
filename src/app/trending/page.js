@@ -21,7 +21,7 @@ export default function TrendingPage() {
     try {
 
       const response = await fetch(
-        "http://localhost:3000/api/statistics/trending"
+        "/api/statistics/trending"
       );
 
       const data = await response.json();
