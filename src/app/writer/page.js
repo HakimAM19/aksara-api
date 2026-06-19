@@ -1,11 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react"; // <-- Ditambahkan useEffect untuk proteksi halaman
+
+import { useRouter } from "next/navigation"; // <-- Ditambahkan useRouter untuk redirect
+
+import Swal from "sweetalert2"; // <-- Ditambahkan SweetAlert2 untuk alert modern
 
 import Editor from "@/components/Editor";
 import Navbar from "@/components/Navbar";
 
 export default function WriterPage() {
+
+  const router = useRouter(); // <-- Inisialisasi router di baris pertama komponen
+
+
+// ==========================================
+  // PROTEKSI DIAM-DIAM (TANPA POP-UP ALERTS)
+  // ==========================================
+  useEffect(() => {
+
+    const role = localStorage.getItem("aksara_role");
+
+    if (role !== "admin" && role !== "writer") {
+
+      // Langsung lempar ke login atau home tanpa kasih alert hitam yang mengganggu
+      router.push("/");
+
+    }
+
+  }, [router]);
+
 
   const [form, setForm] = useState({
 
@@ -55,7 +79,15 @@ export default function WriterPage() {
 
       if (!token) {
 
-        alert("Token tidak ditemukan, silakan login ulang");
+
+        Swal.fire({
+          title: "Sesi Berakhir!",
+          text: "Token tidak ditemukan, silakan login ulang.",
+          icon: "warning",
+          background: "#111",
+          color: "#fff",
+          confirmButtonColor: "#3085d6"
+        });
 
         return;
 
@@ -82,7 +114,6 @@ export default function WriterPage() {
           body: JSON.stringify(form),
 
         }
-
       );
 
 
@@ -91,7 +122,17 @@ export default function WriterPage() {
 
       if (response.ok) {
 
-        alert("Artikel berhasil dipublish!");
+
+        Swal.fire({
+          title: "Berhasil!",
+          text: "Artikel berhasil dipublish!",
+          icon: "success",
+          background: "#111",
+          color: "#fff",
+          timer: 2500,
+          showConfirmButton: false
+        });
+
 
         setForm({
 
@@ -116,7 +157,15 @@ export default function WriterPage() {
 
       } else {
 
-        alert(data.message || data.error);
+
+        Swal.fire({
+          title: "Gagal!",
+          text: data.message || data.error || "Gagal mempublikasikan artikel.",
+          icon: "error",
+          background: "#111",
+          color: "#fff",
+          confirmButtonColor: "#3085d6"
+        });
 
       }
 
@@ -125,13 +174,19 @@ export default function WriterPage() {
 
       console.log(error);
 
-      alert("Terjadi kesalahan");
+
+      Swal.fire({
+        title: "Terjadi Kesalahan!",
+        text: "Sistem mengalami gangguan, coba lagi nanti.",
+        icon: "error",
+        background: "#111",
+        color: "#fff",
+        confirmButtonColor: "#3085d6"
+      });
 
     }
 
   };
-
-  
 
 
 return (

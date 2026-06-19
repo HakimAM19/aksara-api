@@ -1,6 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Footer() {
+
+  const [role, setRole] = useState(null);
+
+  const [mounted, setMounted] = useState(false);
+
+
+  useEffect(() => {
+
+    const userRole = localStorage.getItem("aksara_role");
+
+    setRole(userRole);
+
+    setMounted(true);
+
+  }, []);
+
+
   return (
     <footer className="bg-black text-white border-t border-gray-900">
 
@@ -26,12 +46,16 @@ export default function Footer() {
           <div className="flex gap-5 text-sm text-gray-400">
 
 
-            <Link
-              href="/subscribe"
-              className="hover:text-white transition font-bold border border-white px-4 py-2 rounded-full"
-            >
-              Subscribe
-            </Link>
+            {mounted && role === "admin" ? null : (
+
+              <Link
+                href="/subscribe"
+                className="hover:text-white transition font-bold border border-white px-4 py-2 rounded-full"
+              >
+                Subscribe
+              </Link>
+
+            )}
 
           </div>
 

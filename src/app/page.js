@@ -19,13 +19,24 @@ export default function HomePage() {
   const [premiumArticles, setPremiumArticles] =
     useState([]);
 
+
+  // =====================================
+  // FITUR BARU: UTILITY DATA ROLE UNTUK HERO
+  // =====================================
+  const [role, setRole] =
+    useState(null);
+
+  const [mounted, setMounted] =
+    useState(false);
+
+
   useEffect(() => {
 
     fetchArticles();
 
   }, []);
 
-   useEffect(() => {
+  useEffect(() => {
 
     const hash =
       window.location.hash;
@@ -51,6 +62,23 @@ export default function HomePage() {
       }, 100);
 
     }
+
+  }, []);
+
+
+  // =====================================
+  // EFFECT UNTUK MENANGKAP ROLE USER
+  // =====================================
+  useEffect(() => {
+
+    const userRole =
+      localStorage.getItem(
+        "aksara_role"
+      );
+
+    setRole(userRole);
+
+    setMounted(true);
 
   }, []);
 
@@ -114,8 +142,11 @@ const fetchArticles = async () => {
 
 
       {/* HERO */}
-
-      <Hero />
+      {/* Sekarang melemparkan props data role dan mounted ke komponen Hero */}
+      <Hero 
+        role={role} 
+        mounted={mounted} 
+      />
 
 
 
@@ -221,57 +252,90 @@ const fetchArticles = async () => {
 
 
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
 
           {premiumArticles.map((article) => (
 
             <div
               key={article.id}
-              className="bg-[#111] border border-yellow-500 rounded-3xl overflow-hidden hover:border-yellow-300 transition"
+              className="bg-[#111] border border-yellow-500 rounded-3xl overflow-hidden hover:border-yellow-300 transition flex flex-col h-full"
             >
 
               <img
                 src={article.image_url}
                 alt={article.title}
-                className="w-full h-60 object-cover"
+                className="w-full h-60 object-cover flex-shrink-0"
               />
 
-              <div className="p-6">
+              <div className="p-6 flex flex-col flex-grow justify-between">
 
-                <p className="text-yellow-400 text-sm mb-3 uppercase tracking-[3px]">
+                <div>
 
-                  Premium Article
+                  <p className="text-yellow-400 text-sm mb-3 uppercase tracking-[3px]">
 
-                </p>
-
-                <h3 className="text-2xl font-black leading-snug">
-
-                  {article.title}
-
-                </h3>
-
-                <p className="text-gray-400 mt-4 leading-7">
-
-                  {article.preview}
-
-                </p>
-
-                <div className="flex justify-between items-center mt-8">
-
-                  <p className="text-3xl font-black">
-
-                    Rp {article.price}
+                    Premium Article
 
                   </p>
 
-                  <a
-                    href={`/buy/${article.id}`}
-                    className="bg-white text-black px-5 py-3 rounded-full font-semibold hover:bg-gray-200 transition"
-                  >
+                  <h3 className="text-2xl font-black leading-snug line-clamp-2 min-h-[4rem]">
 
-                    Buy Article
+                    {article.title}
 
-                  </a>
+                  </h3>
+
+                  <p className="text-gray-400 mt-4 leading-7 line-clamp-3">
+
+                    {article.preview}
+
+                  </p>
+
+                </div>
+
+
+                <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-900/50">
+
+                  {/* ======================================================== */}
+                  {/* LOGIKA PERUBAHAN TAMPILAN JIKA USER ADALAH ADMIN */}
+                  {/* ======================================================== */}
+                  {mounted && role === "admin" ? (
+
+                    <>
+                      {/* Sembunyikan nominal harga dan ganti dengan badge akses penuh */}
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-full">
+                        Full Access (Admin)
+                      </span>
+
+                      {/* Arahkan tombol langsung ke halaman baca artikel, bukan halaman beli */}
+                      <a
+                        href={`/articles/${article.id}`}
+                        className="bg-emerald-500 text-black px-5 py-3 rounded-full font-bold hover:bg-emerald-400 transition"
+                      >
+                        Read Article
+                      </a>
+                    </>
+
+                  ) : (
+
+                    <>
+                      {/* Tampilan normal untuk reader biasa atau yang belum melakukan login */}
+                      <p className="text-3xl font-black">
+
+                        Rp {article.price}
+
+                      </p>
+
+                      <a
+                        href={`/buy/${article.id}`}
+                        className="bg-white text-black px-5 py-3 rounded-full font-semibold hover:bg-gray-200 transition"
+                      >
+
+                        Buy Article
+
+                      </a>
+                    </>
+
+                  )}
+                  {/* ======================================================== */}
 
                 </div>
 
@@ -282,7 +346,6 @@ const fetchArticles = async () => {
           ))}
 
         </div>
-
 
 
         <div className="flex justify-center mt-14">
@@ -303,17 +366,16 @@ const fetchArticles = async () => {
 
 
 
+      {mounted && role === "admin" ? null : (
 
-      {/* PREMIUM BANNER */}
+        <section className="max-w-7xl mx-auto px-6 py-20">
 
-      <section className="max-w-7xl mx-auto px-6 py-20">
+          <PremiumBanner />
 
-        <PremiumBanner />
+        </section>
 
-      </section>
-
-
-
+      )}
+      {/* ======================================================== */}
 
 
       <Footer />

@@ -18,7 +18,6 @@
 
 import mysql from "mysql2/promise";
 
-// Langsung tembak pakai DATABASE_URL tunggal agar fleksibel di localhost maupun Vercel
 const db = mysql.createPool(process.env.DATABASE_URL);
 
 export default db;

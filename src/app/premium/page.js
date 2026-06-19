@@ -9,11 +9,32 @@ export default function PremiumPage() {
 
   const [articles, setArticles] = useState([]);
 
+
+  // =====================================
+  // DETEKSI UTILITY DATA ROLE UNTUK ADMIN
+  // =====================================
+  const [role, setRole] = useState(null);
+
+  const [mounted, setMounted] = useState(false);
+
+
   useEffect(() => {
 
     fetchPremium();
 
   }, []);
+
+
+  useEffect(() => {
+
+    const userRole = localStorage.getItem("aksara_role");
+
+    setRole(userRole);
+
+    setMounted(true);
+
+  }, []);
+
 
   const fetchPremium = async () => {
 
@@ -65,57 +86,89 @@ export default function PremiumPage() {
 
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+       <div className="grid md:grid-cols-3 gap-8">
 
           {articles.map((article) => (
 
             <div
               key={article.id}
-              className="bg-[#111] rounded-3xl overflow-hidden border border-gray-800"
+              className="bg-[#111] rounded-3xl overflow-hidden border border-gray-800 flex flex-col h-full"
             >
 
               <img
                 src={article.image_url}
                 alt={article.title}
-                className="w-full h-60 object-cover"
+                className="w-full h-60 object-cover flex-shrink-0"
               />
 
-              <div className="p-6">
+              <div className="p-6 flex flex-col flex-grow justify-between">
 
-                <p className="text-yellow-400 text-sm mb-3">
+                <div>
 
-                  PREMIUM ARTICLE
+                  <p className="text-yellow-400 text-sm mb-3">
 
-                </p>
-
-                <h2 className="text-2xl font-black leading-snug">
-
-                  {article.title}
-
-                </h2>
-
-                <p className="text-gray-400 mt-4 leading-7">
-
-                  {article.preview}
-
-                </p>
-
-                <div className="flex justify-between items-center mt-8">
-
-                  <p className="text-3xl font-black">
-
-                    Rp {article.price}
+                    PREMIUM ARTICLE
 
                   </p>
 
-                  <a
-                    href={`/buy/${article.id}`}
-                    className="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition"
-                  >
+                  <h2 className="text-2xl font-black leading-snug line-clamp-2 min-h-[4rem]">
 
-                    Buy Access
+                    {article.title}
 
-                  </a>
+                  </h2>
+
+                  <p className="text-gray-400 mt-4 leading-7 line-clamp-3">
+
+                    {article.preview}
+
+                  </p>
+
+                </div>
+
+                <div className="flex justify-between items-center mt-8 pt-4 border-t border-gray-900/50">
+
+                  {/* ======================================================== */}
+                  {/* LOGIKA RE-RENDER KHUSUS ADMIN DI HALAMAN PREMIUM */}
+                  {/* ======================================================== */}
+                  {mounted && role === "admin" ? (
+
+                    <>
+                      {/* Badge status akses penuh untuk admin */}
+                      <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-full">
+                        Full Access (Admin)
+                      </span>
+
+                      {/* Tombol langsung mengarah ke halaman baca artikel */}
+                      <a
+                        href={`/articles/${article.id}`}
+                        className="bg-emerald-500 text-black px-6 py-3 rounded-full font-bold hover:bg-emerald-400 transition"
+                      >
+                        Read Article
+                      </a>
+                    </>
+
+                  ) : (
+
+                    <>
+                      {/* Tampilan normal untuk reader atau guest yang belum login */}
+                      <p className="text-3xl font-black">
+
+                        Rp {article.price}
+
+                      </p>
+
+                      <a
+                        href={`/buy/${article.id}`}
+                        className="bg-white text-black px-6 py-3 rounded-full font-bold hover:bg-gray-200 transition"
+                      >
+
+                        Buy Access
+
+                      </a>
+                    </>
+
+                  )}
+                  {/* ======================================================== */}
 
                 </div>
 

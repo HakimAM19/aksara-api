@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function Hero() {
+export default function Hero({ role, mounted }) {
   return (
     <section className="bg-white border-b">
 
@@ -37,13 +37,20 @@ export default function Hero() {
 
           </a>
 
-          <Link href="/writer">
 
-            <button className="text-black border border-black px-8 py-4 rounded-full font-semibold">
-              Become Writer
-            </button>
+          {/* TOMBOL BERIKUT SEKARANG HANYA MUNCUL JIKA USER ADALAH ADMIN */}
+          {mounted && role === "admin" && (
 
-          </Link>
+            <Link href="/writer">
+
+              <button className="text-black border border-black px-8 py-4 rounded-full font-semibold">
+                Become Writer
+              </button>
+
+            </Link>
+
+          )}
+
 
         </div>
 

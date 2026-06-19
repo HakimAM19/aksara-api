@@ -27,6 +27,16 @@ export default function ArticleDetail({
 
   const [comment, setComment] = useState("");
 
+
+  // ========================================================
+  // STATE PERIZINAN UNTUK MENENTUKAN ROLE DAN MOUNTED STATUS
+  // ========================================================
+  const [role, setRole] = useState(null);
+
+  const [mounted, setMounted] = useState(false);
+  // ========================================================
+
+
   useEffect(() => {
 
     if (!id) return;
@@ -36,6 +46,19 @@ export default function ArticleDetail({
     fetchComments();
 
   }, [id]);
+
+
+  // Ambil data role pengguna setelah rendering berjalan di sisi client/browser
+  useEffect(() => {
+
+    const userRole = localStorage.getItem("aksara_role");
+
+    setRole(userRole);
+
+    setMounted(true);
+
+  }, []);
+
 
   const fetchArticle = async () => {
 
@@ -277,9 +300,16 @@ export default function ArticleDetail({
   const unlocked =
     searchParams.get("unlocked");
 
+
+  // =========================================================================
+  // PERBAIKAN LOGIKA UTAMA: JIKA AKUN ADMIN, ISPREMIUM AKAN SELALU FALSE (TERBUKA)
+  // =========================================================================
   const isPremium =
     Number(article.price) > 0 &&
-    unlocked !== "true";
+    unlocked !== "true" &&
+    role !== "admin";
+  // =========================================================================
+
 
   return (
 
@@ -289,15 +319,24 @@ export default function ArticleDetail({
 
       <section className="max-w-4xl mx-auto px-6 py-20">
 
-        {/* TOMBOL AKSI ADMIN: DELETE ARTICLE */}
-        <div className="flex justify-end mb-8">
-          <button
-            onClick={deleteArticle}
-            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-bold text-sm transition"
-          >
-            🗑️ Delete Article
-          </button>
-        </div>
+
+        {/* ======================================================== */}
+        {/* PERBAIKAN 1: TOMBOL DELETE ARTICLE SEKARANG HANYA UNTUK ADMIN */}
+        {/* ======================================================== */}
+        {mounted && role === "admin" && (
+
+          <div className="flex justify-end mb-8">
+            <button
+              onClick={deleteArticle}
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-bold text-sm transition"
+            >
+              🗑️ Delete Article
+            </button>
+          </div>
+
+        )}
+        {/* ======================================================== */}
+
 
         <img
           src={article.image_url}
@@ -414,16 +453,24 @@ export default function ArticleDetail({
                       Anonymous
                     </h3>
 
-                    <button
-                      onClick={() =>
-                        deleteComment(item.id)
-                      }
-                      className="text-red-400 hover:text-red-300"
-                    >
 
-                      Delete
+                    {/* ======================================================== */}
+                    {/* PERBAIKAN 2: TOMBOL DELETE COMMENT SEKARANG HANYA UNTUK ADMIN */}
+                    {/* ======================================================== */}
+                    {mounted && role === "admin" && (
 
-                    </button>
+                      <button
+                        onClick={() =>
+                          deleteComment(item.id)
+                        }
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        Delete
+                      </button>
+
+                    )}
+                    {/* ======================================================== */}
+
 
                   </div>
 

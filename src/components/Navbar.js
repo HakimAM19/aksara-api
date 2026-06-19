@@ -15,10 +15,17 @@ export default function Navbar() {
 
   const router = useRouter();
   const pathname = usePathname();
-  
+
 
   const [showNavbar, setShowNavbar] =
     useState(true);
+
+  const [role, setRole] =
+    useState(null);
+
+  // 1. TAMBAHKAN STATE MOUNTED UNTUK MENJAGA SINKRONISASI SERVER & CLIENT
+  const [mounted, setMounted] =
+    useState(false);
 
   useEffect(() => {
 
@@ -87,6 +94,20 @@ export default function Navbar() {
 
   }, []);
 
+  useEffect(() => {
+
+    const userRole =
+      localStorage.getItem(
+        "aksara_role"
+      );
+
+    setRole(userRole);
+
+    // 2. SET MOUNTED JADI TRUE JIKA KODE SUDAH BERJALAN DI BROWSER
+    setMounted(true);
+
+  }, []);
+
   const goToSection = (id) => {
 
     if (pathname === "/") {
@@ -110,6 +131,36 @@ export default function Navbar() {
 
   };
 
+  const logout = () => {
+
+    localStorage.removeItem(
+      "aksara_token"
+    );
+
+    localStorage.removeItem(
+      "aksara_role"
+    );
+
+    localStorage.removeItem(
+      "aksara_user"
+    );
+
+    window.location.href = "/";
+
+  };
+
+
+  // 3. JIKA BELUM SELESAI RENDERING DI BROWSER, TAMPILKAN STRUKTUR NAVBAR KOSONG DULU
+  // Ini trik jitu biar Server dan Client tidak tabrakan render logika di bawah
+  if (!mounted) {
+
+    return (
+      <nav className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-xl border-b border-gray-900 h-[73px]"></nav>
+    );
+
+  }
+
+
   return (
 
     <nav
@@ -121,10 +172,9 @@ export default function Navbar() {
         z-50
         transition-all
         duration-300
-        ${
-          showNavbar
-            ? "translate-y-0"
-            : "-translate-y-full"
+        ${showNavbar
+          ? "translate-y-0"
+          : "-translate-y-full"
         }
         bg-black/90
         backdrop-blur-xl
@@ -163,11 +213,76 @@ export default function Navbar() {
             Articles
           </button>
 
-      <button  onClick={() =>
-              goToSection("premium")
-            } className="bg-white text-black px-5 py-2 rounded-full font-semibold">
-  Premium
-</button>
+          {(role === "admin" ||
+            role === "writer") && (
+
+              <Link
+                href="/writer"
+                className="hover:text-gray-300 transition"
+              >
+                Write
+              </Link>
+
+            )}
+
+
+          {/* ======================================================== */}
+          {/* PERUBAHAN DISINI: SEMBUNYIKAN TOMBOL PREMIUM JIKA ADMIN */}
+          {/* ======================================================== */}
+          {role !== "admin" && (
+
+            <button
+              onClick={() =>
+                goToSection("premium")
+              }
+              className="
+                bg-white
+                text-black
+                px-5
+                py-2
+                rounded-full
+                font-semibold
+              "
+            >
+              Premium
+            </button>
+
+          )}
+          {/* ======================================================== */}
+
+
+          {!role ? (
+
+            <Link
+              href="/login"
+              className="
+        border
+        border-gray-700
+        px-5
+        py-2
+        rounded-full
+      "
+            >
+              Login
+            </Link>
+
+          ) : (
+
+            <button
+              onClick={logout}
+              className="
+        border
+        border-red-500
+        text-red-400
+        px-5
+        py-2
+        rounded-full
+      "
+            >
+              Logout
+            </button>
+
+          )}
 
         </div>
 

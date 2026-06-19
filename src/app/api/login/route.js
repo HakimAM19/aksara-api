@@ -63,15 +63,17 @@ export async function POST(req) {
 
 
 
-    return NextResponse.json({
+return NextResponse.json({
 
-      success: true,
+  success: true,
 
-      token,
+  token,
 
-      user: rows[0].name,
+  user: rows[0].name,
 
-    });
+  role: rows[0].role,
+
+});
 
   } catch (error) {
 
