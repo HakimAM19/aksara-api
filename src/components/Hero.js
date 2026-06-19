@@ -14,7 +14,7 @@ export default function Hero() {
 
           Masa Depan
           Jurnalisme Digital
-          Dimulai di AKSARA.
+          Dimulai di AKSARA. TES 123
 
         </h1>
 
